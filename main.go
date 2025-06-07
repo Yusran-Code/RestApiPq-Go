@@ -22,7 +22,8 @@ var db *sql.DB
 
 func main() {
 	var err error
-	connStr := "user=postgres password=LuckyCode dbname=rest_golang sslmode=disable"
+	connStr := "postgres://postgres:%40yusran@db.jtsuknwzkkmamvncosny.supabase.co:5432/postgres?sslmode=require"
+
 	db, err = sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -35,11 +36,11 @@ func main() {
 	fmt.Println("Succes DB Connection")
 
 	router := mux.NewRouter()
-	router.HandleFunc("/items", getItems).Methods("GET")
-	router.HandleFunc("/items/{id}", getItem).Methods("GET")
-	router.HandleFunc("/items", createItem).Methods("POST")
-	router.HandleFunc("/items/{id}", updateItem).Methods("PUT")
-	router.HandleFunc("/items/{id}", deleteItem).Methods("DELETE")
+	router.HandleFunc("/example", getItems).Methods("GET")
+	router.HandleFunc("/example/{id}", getItem).Methods("GET")
+	router.HandleFunc("/example", createItem).Methods("POST")
+	router.HandleFunc("/example/{id}", updateItem).Methods("PUT")
+	router.HandleFunc("/example/{id}", deleteItem).Methods("DELETE")
 
 	log.Println("Server running at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -47,7 +48,7 @@ func main() {
 
 // GET /items
 func getItems(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, name, description FROM items")
+	rows, err := db.Query("SELECT id, name, description FROM example")
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -80,7 +81,7 @@ func getItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var it Item
-	err = db.QueryRow("SELECT id, name, description FROM items WHERE id = $1", idInt).
+	err = db.QueryRow("SELECT id, name, description FROM example WHERE id = $1", idInt).
 		Scan(&it.ID, &it.Name, &it.Description)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -107,7 +108,7 @@ func createItem(w http.ResponseWriter, r *http.Request) {
 	
 
 	err = db.QueryRow(
-		"INSERT INTO items (name, description) VALUES ($1, $2) RETURNING id",
+		"INSERT INTO example (name, description) VALUES ($1, $2) RETURNING id",
 		it.Name, it.Description,
 	).Scan(&it.ID)
 
@@ -140,7 +141,7 @@ func updateItem(w http.ResponseWriter, r *http.Request) {
 
 
 
-	res, err := db.Exec("UPDATE items SET name=$1, description=$2 WHERE id=$3", it.Name, it.Description, idInt)
+	res, err := db.Exec("UPDATE example SET name=$1, description=$2 WHERE id=$3", it.Name, it.Description, idInt)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
@@ -167,7 +168,7 @@ func deleteItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := db.Exec("DELETE FROM items WHERE id=$1", idInt)
+	res, err := db.Exec("DELETE FROM example WHERE id=$1", idInt)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
